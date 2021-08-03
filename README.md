@@ -95,4 +95,13 @@ Optional parameters ...
 - The -t thread_count parameter can be included to spin up more or less threads than are automatically calculated.
 - The -u use_api parameter can be used if it becomes necessary in the future due to database sharding.
 
-**- The -d datasource_filter parameter can be used to specify a single data source. This can significantly reduce the time it takes to take a snapshot.**
+**
+- The -d datasource_filter parameter can be used to specify a single data source. This can significantly reduce the time it takes to take a snapshot.
+**
+
+### Final note
+
+The [DBSnapshot-alt.py](DBSnapshot-alt.py) uses an alternate method of taking a snapshot for a specific data source. It is only being provided for testing purposes if the regular DBSnaphot.py is not 
+performing as quickly as required. 
+
+
