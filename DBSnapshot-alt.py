@@ -8,7 +8,6 @@ import random
 import signal
 import sys
 import time
-import math
 from datetime import datetime, timedelta
 import configparser
 
@@ -26,7 +25,6 @@ try:
     from G2IniParams import G2IniParams
     from G2ConfigMgr import G2ConfigMgr
     from G2Exception import G2Exception
-    from G2Diagnostic import G2Diagnostic
 except:
     print('')
     print('Please export PYTHONPATH=<path to senzing python directory>')
@@ -536,11 +534,11 @@ def processEntities():
 
         if newStatPack:
             reply = input('\nAre you sure you want to overwrite it (yes/no)? ')
+            print()
             if reply not in ['y','Y', 'yes', 'YES']:
                 with shutDown.get_lock():
                     shutDown.value = 1
                 return
-        print()
 
     if newStatPack and os.path.exists(csvFilePath):
         print('\nThe %s file still exists.  Please either rename or remove it as well.\n' % csvFilePath)
@@ -552,6 +550,7 @@ def processEntities():
         statPack = {}
         statPack['SOURCE'] = 'G2Snapshot'
         statPack['PROCESS'] = {}
+        statPack['PROCESS']['DATA_SOURCE'] = datasourceFilter if datasourceFilter else 'ALL'
         statPack['PROCESS']['STATUS'] = 'Incomplete'
         statPack['PROCESS']['START_TIME'] = datetime.now().strftime('%m/%d/%Y %H:%M:%S')
         statPack['PROCESS']['LAST_ENTITY_ID'] = 0
@@ -574,10 +573,10 @@ def processEntities():
     resume_queue = Queue(threadCount * 10)
     thread_list = []
 
-    print('starting %s %s threads ...' % (threadCount, ('api' if use_api else 'database')))
+    print('starting %s threads ...' % threadCount)
     process_list = []
 
-    if not use_api: #--sql only mode
+    if sql_only: #--sql only mode
         for thread_id in range(threadCount - 1):
             process_list.append(Process(target=setup_entity_queue_db, args=(thread_id, threadStop, entity_queue, resume_queue)))
 
@@ -598,31 +597,29 @@ def processEntities():
 
     procStartTime = time.time()
 
+    maxEntityId = g2Dbo.fetchNext(g2Dbo.sqlExec('select max(RES_ENT_ID) as MAX_RES_ENT_ID from RES_ENT'))['MAX_RES_ENT_ID']
     if not datasourceFilter:
-        maxEntityId = g2Dbo.fetchNext(g2Dbo.sqlExec('select max(RES_ENT_ID) as MAX_RES_ENT_ID from RES_ENT'))['MAX_RES_ENT_ID']
         sql0 = 'select RES_ENT_ID from RES_ENT where RES_ENT_ID between ? and ?'
     else:
-        sql0 = 'select distinct ' \
-               ' b.RES_ENT_ID ' \
-               'from OBS_ENT a ' \
-               'join RES_ENT_OKEY b on b.OBS_ENT_ID = a.OBS_ENT_ID ' \
-               'where DSRC_ID = ' + str(datasourceFilterID)
+        sql0 = 'select distinct' \
+               ' a.RES_ENT_ID ' \
+               'from RES_ENT_OKEY a ' \
+               'join OBS_ENT b on b.OBS_ENT_ID = a.OBS_ENT_ID ' \
+               'where a.RES_ENT_ID between ? and ? and b.DSRC_ID = ' + str(datasourceFilterID)
 
     batchStartTime = time.time()
     entityCount = 0
     batchEntityCount = 0
 
-    if not datasourceFilter:
-        begEntityId = statPack['PROCESS']['LAST_ENTITY_ID'] + 1
-        endEntityId = begEntityId + chunkSize
+    begEntityId = statPack['PROCESS']['LAST_ENTITY_ID'] + 1
+    endEntityId = begEntityId + chunkSize
 
     while True:
         if not datasourceFilter:
             print('Getting entities from %s to %s ...' % (begEntityId, endEntityId))
-            entity_rows = g2Dbo.fetchAllRows(g2Dbo.sqlExec(sql0, (begEntityId, endEntityId)))
         else:
-            print('Getting entities for %s' % datasourceFilter)
-            entity_rows = g2Dbo.fetchAllRows(g2Dbo.sqlExec(sql0))
+            print('Getting entities from %s to %s with %s records ...' % (begEntityId, endEntityId, datasourceFilter))
+        entity_rows = g2Dbo.fetchAllRows(g2Dbo.sqlExec(sql0, (begEntityId, endEntityId)))
 
         if entity_rows:
             last_row_entity_id = entity_rows[len(entity_rows)-1][0]
@@ -658,26 +655,23 @@ def processEntities():
             break
         else: #--set next batch
 
-            if not datasourceFilter:
-                if endEntityId >= maxEntityId:
-                    break
-
-                #--write interim snapshot file
-                queuesEmpty = wait_for_queues(entity_queue, resume_queue)
-                statData = {
-                    'writeStatus': 'Interim',
-                    'lastEntityId': endEntityId,
-                    'queuesEmpty': queuesEmpty,
-                    'statsFileName': statsFilePath
-                }
-                queue_write(resume_queue, statData)
-                queuesEmpty = wait_for_queues(entity_queue, resume_queue)
-
-                #--get next chunk
-                begEntityId += chunkSize
-                endEntityId += chunkSize
-            else:
+            if endEntityId >= maxEntityId:
                 break
+
+            #--write interim snapshot file
+            queuesEmpty = wait_for_queues(entity_queue, resume_queue)
+            statData = {
+                'writeStatus': 'Interim',
+                'lastEntityId': endEntityId,
+                'queuesEmpty': queuesEmpty,
+                'statsFileName': statsFilePath
+            }
+            queue_write(resume_queue, statData)
+            queuesEmpty = wait_for_queues(entity_queue, resume_queue)
+
+            #--get next chunk
+            begEntityId += chunkSize
+            endEntityId += chunkSize
 
     #--write final snapshot file
     print('Finishing up ...')
@@ -685,7 +679,7 @@ def processEntities():
     if not shutDown.value:
         statData = {
             'writeStatus': 'Final',
-            'lastEntityId': maxEntityId if not datasourceFilter else datasourceFilter,
+            'lastEntityId': maxEntityId,
             'queuesEmpty': queuesEmpty,
             'statsFileName': statsFilePath
         }
@@ -794,48 +788,48 @@ if __name__ == '__main__':
     progressInterval = 10000
 
     #--defaults
-    try: configFileName = G2Paths.get_G2Module_ini_path()
-    except: configFileName = '' 
+    try: iniFileName = G2Paths.get_G2Module_ini_path()
+    except: iniFileName = '' 
     outputFileRoot = os.getenv('SENZING_OUTPUT_FILE_ROOT') if os.getenv('SENZING_OUTPUT_FILE_ROOT', None) else None
     sampleSize = int(os.getenv('SENZING_SAMPLE_SIZE')) if os.getenv('SENZING_SAMPLE_SIZE', None) and os.getenv('SENZING_SAMPLE_SIZE').isdigit() else 1000
     datasourceFilter = os.getenv('SENZING_DATASOURCE_FILTER', None)
     relationshipFilter = int(os.getenv('SENZING_RELATIONSHIP_FILTER')) if os.getenv('SENZING_RELATIONSHIP_FILTER', None) and os.getenv('SENZING_RELATIONSHIP_FILTER').isdigit() else 3
     chunkSize = int(os.getenv('SENZING_CHUNK_SIZE')) if os.getenv('SENZING_CHUNK_SIZE', None) and os.getenv('SENZING_CHUNK_SIZE').isdigit() else 1000000
-    threadCount = int(os.getenv('SENZING_THREAD_COUNT')) if os.getenv('SENZING_THREAD_COUNT', None) and os.getenv('SENZING_THREAD_COUNT').isdigit() else 0
+    threadCount = int(os.getenv('SENZING_THREAD_COUNT')) if os.getenv('SENZING_THREAD_COUNT', None) and os.getenv('SENZING_THREAD_COUNT').isdigit() else 16
 
     #--capture the command line arguments
     argParser = argparse.ArgumentParser()
-    argParser.add_argument('-c', '--config_file_name', default=configFileName, help='name of the senzing config file, defaults to %s' % configFileName)
-    argParser.add_argument('-o', '--output_file_root', default=outputFileRoot, help='root name for files created such as "/project/snapshots/snapshot1"')
-    argParser.add_argument('-s', '--sample_size', type=int, default=sampleSize, help='defaults to %s' % sampleSize)
-    argParser.add_argument('-d', '--datasource_filter', help='data source code to analayze, defaults to all')
-    argParser.add_argument('-f', '--relationship_filter', type=int, default=relationshipFilter, help='filter options 1=No Relationships, 2=Include possible matches, 3=Include possibly related and disclosed. Defaults to %s' % relationshipFilter)
-    argParser.add_argument('-a', '--for_audit', action='store_true', default=False, help='export csv file for audit')
-    argParser.add_argument('-D', '--debug', action='store_true', default=False, help='print debug statements')
-    argParser.add_argument('-k', '--chunk_size', type=int, default=chunkSize, help='defaults to %s' % chunkSize)
-    argParser.add_argument('-t', '--thread_count', type=int, default=threadCount, help='defaults to %s' % threadCount)
-    argParser.add_argument('-u', '--use_api', action='store_true', default=False, help='use api instead of sql to get resume')
+    argParser.add_argument('-c', '--config_file_name', dest='ini_file_name', default=iniFileName, help='name of the g2.ini file, defaults to %s' % iniFileName)
+    argParser.add_argument('-o', '--output_file_root', dest='output_file_root', default=outputFileRoot, help='root name for files created such as "/project/snapshots/snapshot1"')
+    argParser.add_argument('-s', '--sample_size', dest='sample_size', type=int, default=sampleSize, help='defaults to %s' % sampleSize)
+    argParser.add_argument('-d', '--datasource_filter', dest='datasource_filter', help='data source code to analayze, defatults to all')
+    argParser.add_argument('-f', '--relationship_filter', dest='relationship_filter', type=int, default=relationshipFilter, help='filter options 1=No Relationships, 2=Include possible matches, 3=Include possibly related and disclosed. Defaults to %s' % relationshipFilter)
+    argParser.add_argument('-a', '--for_audit', dest='export_csv', action='store_true', default=False, help='export csv file for audit')
+    argParser.add_argument('-D', '--debug', dest='debug', action='store_true', default=False, help='print debug statements')
+    argParser.add_argument('-k', '--chunk_size', dest='chunk_size', type=int, default=chunkSize, help='defaults to %s' % chunkSize)
+    argParser.add_argument('-t', '--thread_count', dest='thread_count', type=int, default=threadCount, help='defaults to %s' % threadCount)
+    argParser.add_argument('-S', '--sql_only', dest='sql_only', action='store_true', default=False, help='use sql, not api to get resume')
 
     args = argParser.parse_args()
-    configFileName = args.config_file_name
+    iniFileName = args.ini_file_name
     outputFileRoot = args.output_file_root
     sampleSize = args.sample_size
     datasourceFilter = args.datasource_filter
     relationshipFilter = args.relationship_filter
-    exportCsv = args.for_audit
+    exportCsv = args.export_csv
     debugOn = args.debug
     chunkSize = args.chunk_size
     threadCount = args.thread_count
-    use_api = args.use_api
+    sql_only = args.sql_only
 
     #--get parameters from ini file
-    if not os.path.exists(configFileName):
+    if not os.path.exists(iniFileName):
         print('')
         print('An ini file was not found, please supply with the -c parameter.')
         print('')
         sys.exit(1)
     iniParser = configparser.ConfigParser()
-    iniParser.read(configFileName)
+    iniParser.read(iniFileName)
     try: g2dbUri = iniParser.get('SQL', 'CONNECTION')
     except: 
         print('')
@@ -846,26 +840,13 @@ if __name__ == '__main__':
     #--g2 engine stuff
     try:
         g2iniParams = G2IniParams()
-        iniParams = g2iniParams.getJsonINIParams(configFileName)
+        iniParams = g2iniParams.getJsonINIParams(iniFileName)
         g2Product = G2Product()
         apiVersion = json.loads(g2Product.version())
         g2Product.destroy()
     except G2Exception.G2Exception as err:
         print('\n%s\n' % str(err))
         sys.exit(1)
-
-    if not threadCount:
-        try:
-            g2Diag = G2Diagnostic()
-            g2Diag.initV2('pyG2Diagnostic', iniParams, False)
-            physical_cores = g2Diag.getPhysicalCores()
-            logical_cores = g2Diag.getLogicalCores()
-            calc_cores_factor = 2 #--if physical_cores != logical_cores else 1.2
-            threadCount = math.ceil(logical_cores * calc_cores_factor)
-            print(f'\nPhysical cores: {logical_cores}, logical cores: {logical_cores}, default threads: {threadCount}')
-        except G2Exception.G2Exception as err:
-            print('\n%s\n' % str(err))
-            sys.exit(1)
 
     #--get needed config data
     try: 
