@@ -75,21 +75,23 @@ To run for all data sources ...
 ```console
 python3 DBSnapshot.py -o /myproject/snapshots/snapshot-mm-dd-yyyy 
 ```
+This will result in the following files being generated ...
+- /myproject/snapshots/snapshot-mm-dd-yyyy.json
+- /myproject/snapshots/snapshot-mm-dd-yyyy.csv (if you use -a for_audit option)
+
+*Of course you will want to change the -o output_path to a file and directory of your choice.  It is a good idea though to create a snapshots directory and include the date you took the snapshot in your file name 
+as snapshots can be compared through time*
+
 
 For a specific data source ...
 ```console
 python3 DBSnapshot.py -o /myproject/snapshots/snapshot1-mm-dd-yyyy -d mydatasource
 ```
 
-*You will want to change the -o output_path to a file and directory of your choice.  It is a good idea though to create a snapshots directory and include the date you took the snapshot in your file name 
-as snapshots can be compared through time*
 
 *Please note the the -d data source option was added as normally there is one primary data source you are trying to resolve against itself and see what other data sources match it.   For instance you might want 
 to compare your customers against a watch list or reference data such as a list of registered companies which can sometimes be quite massive.*
 
-This will result in the following files being generated ...
-- /project/snapshots/snapshot1.json
-- /project/snapshots/snapshot1.csv (if you use -a for_audit option)
 
 Optional parameters ...
 - The -c config_file parameter is only required if your project's G2Module.ini file can't be found in the usual location.
