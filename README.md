@@ -103,7 +103,7 @@ Optional parameters ...
 **- The -t thread_count parameter can be included to spin up more or less threads than are automatically calculated.**
 
 *With enough database capacity and application threads, you should see speeds of 3-5k entities processed per second.  Its a matter of monitoring the database and sshd container processor utilization. If 
-both are below 80% processor utilization, you can increase the -t thread-count which currently defaults to 4 per processor.*
+both are below 80%, you can increase the -t thread-count which currently defaults to 4 per processor.*
 
 **- The -d datasource_filter parameter can be used to specify a single data source. This can significantly reduce the time it takes to take a snapshot.**
 
