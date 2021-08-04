@@ -53,6 +53,9 @@ optional arguments:
     - psycopg2 (for postgres)
     - pyodbc (and supporting drivers) for all other databases 
 
+*If using an SSHD container, you should first max it out with at least 4 processors and 30g of ram as the more threads you give it, the faster it will run.  Also, if the database container is not set to 
+auto-scale, you should give it a additional resources as well.* 
+
 ### Installation
 
 1. Simply place the the following files in a directory of your choice ...  (Ideally along with poc-viewer.py)
