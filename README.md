@@ -101,6 +101,7 @@ Optional parameters ...
 - The -u use_api parameter can be used if it becomes necessary in the future due to database sharding.
 
 **- The -t thread_count parameter can be included to spin up more or less threads than are automatically calculated.**
+
 *With enough database capacity and application threads, you should see speeds of 3-5k entities processed per second.  Its a matter of monitoring the database and sshd container processor utilization.   
 If the both the database server and sshd container are below 80% processor utilization, you can increase the -t thread-count which currently defaults to 4 per processor.*
 
