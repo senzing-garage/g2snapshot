@@ -599,30 +599,40 @@ def processEntities():
     procStartTime = time.time()
 
     if not datasourceFilter:
-        maxEntityId = g2Dbo.fetchNext(g2Dbo.sqlExec('select max(RES_ENT_ID) as MAX_RES_ENT_ID from RES_ENT'))['MAX_RES_ENT_ID']
+        maxEntityId = g2Dbo.fetchRow(g2Dbo.sqlExec('select max(RES_ENT_ID) from RES_ENT'))[0]
         sql0 = 'select RES_ENT_ID from RES_ENT where RES_ENT_ID between ? and ?'
     else:
-        sql0 = 'select distinct ' \
-               ' b.RES_ENT_ID ' \
-               'from OBS_ENT a ' \
-               'join RES_ENT_OKEY b on b.OBS_ENT_ID = a.OBS_ENT_ID ' \
-               'where DSRC_ID = ' + str(datasourceFilterID)
+        print(f'\ndetermining entity_id range for {datasourceFilter} ... ', end='', flush=True)
+        sql = 'select  ' \
+              ' min(b.RES_ENT_ID), ' \
+              ' max(b.RES_ENT_ID) ' \
+              'from OBS_ENT a ' \
+              'join RES_ENT_OKEY b on b.OBS_ENT_ID = a.OBS_ENT_ID ' \
+              'where a.DSRC_ID = ' + str(datasourceFilterID)
+        minEntityId, maxEntityId = g2Dbo.fetchRow(g2Dbo.sqlExec(sql))
+        print(f'from {minEntityId} to {maxEntityId}\n')
+        if newStatPack: 
+            statPack['PROCESS']['LAST_ENTITY_ID'] = minEntityId - 1
+
+        sql0 = 'select distinct' \
+               ' a.RES_ENT_ID ' \
+               'from RES_ENT_OKEY a ' \
+               'join OBS_ENT b on b.OBS_ENT_ID = a.OBS_ENT_ID ' \
+               'where a.RES_ENT_ID between ? and ? and b.DSRC_ID = ' + str(datasourceFilterID)
 
     batchStartTime = time.time()
     entityCount = 0
     batchEntityCount = 0
 
-    if not datasourceFilter:
-        begEntityId = statPack['PROCESS']['LAST_ENTITY_ID'] + 1
-        endEntityId = begEntityId + chunkSize
+    begEntityId = statPack['PROCESS']['LAST_ENTITY_ID'] + 1
+    endEntityId = begEntityId + chunkSize
 
     while True:
         if not datasourceFilter:
             print('Getting entities from %s to %s ...' % (begEntityId, endEntityId))
-            entity_rows = g2Dbo.fetchAllRows(g2Dbo.sqlExec(sql0, (begEntityId, endEntityId)))
         else:
-            print('Getting entities for %s' % datasourceFilter)
-            entity_rows = g2Dbo.fetchAllRows(g2Dbo.sqlExec(sql0))
+            print('Getting entities from %s to %s with %s records ...' % (begEntityId, endEntityId, datasourceFilter))
+        entity_rows = g2Dbo.fetchAllRows(g2Dbo.sqlExec(sql0, (begEntityId, endEntityId)))
 
         if entity_rows:
             last_row_entity_id = entity_rows[len(entity_rows)-1][0]
@@ -658,26 +668,23 @@ def processEntities():
             break
         else: #--set next batch
 
-            if not datasourceFilter:
-                if endEntityId >= maxEntityId:
-                    break
-
-                #--write interim snapshot file
-                queuesEmpty = wait_for_queues(entity_queue, resume_queue)
-                statData = {
-                    'writeStatus': 'Interim',
-                    'lastEntityId': endEntityId,
-                    'queuesEmpty': queuesEmpty,
-                    'statsFileName': statsFilePath
-                }
-                queue_write(resume_queue, statData)
-                queuesEmpty = wait_for_queues(entity_queue, resume_queue)
-
-                #--get next chunk
-                begEntityId += chunkSize
-                endEntityId += chunkSize
-            else:
+            if endEntityId >= maxEntityId:
                 break
+
+            #--write interim snapshot file
+            queuesEmpty = wait_for_queues(entity_queue, resume_queue)
+            statData = {
+                'writeStatus': 'Interim',
+                'lastEntityId': endEntityId,
+                'queuesEmpty': queuesEmpty,
+                'statsFileName': statsFilePath
+            }
+            queue_write(resume_queue, statData)
+            queuesEmpty = wait_for_queues(entity_queue, resume_queue)
+
+            #--get next chunk
+            begEntityId += chunkSize
+            endEntityId += chunkSize
 
     #--write final snapshot file
     print('Finishing up ...')
@@ -860,7 +867,7 @@ if __name__ == '__main__':
             g2Diag.initV2('pyG2Diagnostic', iniParams, False)
             physical_cores = g2Diag.getPhysicalCores()
             logical_cores = g2Diag.getLogicalCores()
-            calc_cores_factor = 2 #--if physical_cores != logical_cores else 1.2
+            calc_cores_factor = 4 #--if physical_cores != logical_cores else 1.2
             threadCount = math.ceil(logical_cores * calc_cores_factor)
             print(f'\nPhysical cores: {logical_cores}, logical cores: {logical_cores}, default threads: {threadCount}')
         except G2Exception.G2Exception as err:
@@ -914,15 +921,25 @@ if __name__ == '__main__':
 
     #--check the output file
     if not outputFileRoot:
-        print('\nPlease use -o to select and output path and root file name such as /project/audit/run1\n')
+        print('\nPlease use -o to select and output path and root file name such as /project/audit/snap1\n')
         sys.exit(1)
     if os.path.splitext(outputFileRoot)[1]:
         print("\nPlease don't use a file extension as both a .json and a .csv file will be created\n")
         sys.exit(1)
 
-    #--create output file paths
     statsFilePath = outputFileRoot + '.json'
     csvFilePath = outputFileRoot + '.csv'
+
+    statsFileExisted = os.path.exists(statsFilePath)
+    try:
+        with open(statsFilePath, 'a') as f:
+            pass
+    except IOError as err:
+        print(f'\nCannot write to {statsFilePath}.  \n{err}\n')
+        sys.exit(1)
+    if not statsFileExisted:
+        os.remove(statsFilePath)
+
     #--process the entities
     processEntities()
 

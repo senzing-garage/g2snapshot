@@ -88,9 +88,12 @@ Or, for a specific data source ...
 python3 DBSnapshot.py -o /myproject/snapshots/snapshot1-mm-dd-yyyy -d mydatasource
 ```
 
-*Please note the the -d data source option was added as normally there is one primary data source you are trying to resolve against itself and see what other data sources match it.   For instance you might want 
-to compare your customers against a watch list or reference data such as a list of registered companies which can sometimes be quite massive.*
+*Please note the the -d data source option was added as normally there is **one primary data source** you are trying to resolve against itself 
+and see what other data sources match it. For instance you might want to compare your customers against a watch list or reference data such
+as a list of registered companies.*
 
+*Do not use the -d option iterively for each data source.   It would be much more efficient to run the snapshot wide open as it will analyze
+all the data sources against each other.*
 
 Optional parameters ...
 - The -c config_file parameter is only required if your project's G2Module.ini file can't be found in the usual location.
@@ -105,11 +108,5 @@ Optional parameters ...
 *With enough database capacity and application threads, you should see speeds of 3-5k entities processed per second.  Its a matter of monitoring the database and sshd container processor utilization. If 
 both are below 80%, you can increase the -t thread-count which currently defaults to 4 per processor.*
 
-**- The -d datasource_filter parameter can be used to specify a single data source. This can significantly reduce the time it takes to take a snapshot.**
-
-### Final note
-
-The [DBSnapshot-alt.py](DBSnapshot-alt.py) uses an alternate method of taking a snapshot for a specific data source. It is only being provided for testing purposes if the regular DBSnaphot.py is not 
-performing as quickly as required. 
-
+**- The -d datasource_filter parameter can be used to specify a single data source. This can significantly reduce the time it takes to take a snapshot on a small data source.**
 
