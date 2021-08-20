@@ -2,20 +2,20 @@
 
 ## Overview
 
-The following snapshot utilities analyze the data in a Senzing repository to calculate the following reports ...
+The following snapshot utilities analyze the data in a Senzing repository to calculate the following reports:
 - **dataSourceSummary** - calculates the duplicates, possible matches and relations by data source.
 - **crossSourceSummary** - calculates the duplicates, possible matches and relations across data sources.
 - **entitySizeBreakdown** - calculates how many entities have how many records, highlighting possible instances of overmatching.
 
 These reports are placed in a json file that can be viewed with the G2Explorer located 
-here ... https://github.com/Senzing/g2explorer
+here: https://github.com/Senzing/g2explorer
 
 It can optionally export the entire entity resolution result set for use in the G2Audit utility located 
-here ... https://github.com/Senzing/g2audit
+here: https://github.com/Senzing/g2audit
 
-Taking a snapshot is part of Senzing's Exploratory Data Analysis toolset which you can read more about here ... https://senzing.zendesk.com/hc/en-us/sections/360009388534-Exploratory-Data-Analysis-EDA-
+Taking a snapshot is part of Senzing's Exploratory Data Analysis toolset which you can read more about here: https://senzing.zendesk.com/hc/en-us/sections/360009388534-Exploratory-Data-Analysis-EDA-
 
-There are two python scripts in this repository ...
+There are two python scripts in this repository:
 - [G2Snapshot.py](G2Snapshot.py) is the latest version that interacts directly with the database and is multi-threaded 
 for improved performance on large data sets.
 - [G2Snapshot-api-only.py](G2Snapshot-api-only.py) is the legacy version that only uses the API.  It does not require direct database access, 
@@ -68,7 +68,7 @@ optional arguments:
 3. [Typical use](#Typical-use)
 
 ### Prerequisites
-- python 3.6 or higher
+- Python 3.6 or higher
 - Senzing API version 1.10 or higher
 - database support for your Senzing database
     - psycopg2 (for postgres)
@@ -79,7 +79,7 @@ auto-scale, you should give it a additional resources as well.*
 
 ### Installation
 
-1. Simply place the the following files in a directory of your choice ...  (Ideally along with poc-viewer.py)
+1. Place the the following files in a directory of your choice:
     - [G2Snapshot.py](G2Snapshot.py) 
     - [G2Snapshot-api-only.py](G2Snapshot-api-only.py) 
 
@@ -93,7 +93,7 @@ Its a good idea to place these settings in your .bashrc file to make sure the en
 
 ### Typical use
 
-To run for all data sources ...
+To run for all data sources:
 ```console
 python3 G2Snapshot.py -o /myproject/snapshots/snapshot-mm-dd-yyyy 
 ```
@@ -105,7 +105,7 @@ This will result in the following files being generated ...
 as snapshots can be compared through time*
 
 
-Or, for a specific data source ...
+Or, for a specific data source:
 ```console
 python3 G2Snapshot.py -o /myproject/snapshots/snapshot1-mm-dd-yyyy -d mydatasource
 ```
@@ -117,7 +117,7 @@ as a list of registered companies.*
 *Do not use the -d option iterively for each data source.   It would be much more efficient to run the snapshot wide open as it will analyze
 all the data sources against each other.*
 
-Optional parameters ...
+Optional parameters:
 - The -c config_file parameter is only required if your project's G2Module.ini file can't be found in the usual location.
 - The -s sample_size parameter can be added to inlcude either more or less samples in the json file.
 - The -f relationship_filter can be included if you don't care about relationships.  It runs faster without computing them.   However, it is highly recommended that you at least include possible matches.
