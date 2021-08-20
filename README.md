@@ -21,8 +21,8 @@ for improved performance on large data sets.
 - [G2Snapshot.py](G2Snapshot.py) is the legacy version that only uses the API.  It does not require direct database access, but 
 may not perform well on larger data sets.
 
-*You will want to install database access as described in the prerequisites below and use DBSnapshot.py on large databases.  
-DBSnapshot is documented here but G2Snapshot has all the same parameters except thread_count, chunk_size and use_api.*
+*You will want to install database access as described in the prerequisites below and use DBSnapshot.py on large databases.  DBSnapshot 
+is documented here but G2Snapshot has all the same parameters except datasource_filter, thread_count, chunk_size, use_api.*
 
 Usage:
 
@@ -43,14 +43,16 @@ optional arguments:
                         "/project/snapshots/snapshot1"
   -s SAMPLE_SIZE, --sample_size SAMPLE_SIZE
                         defaults to 1000
-  -d DATASOURCE_FILTER, --datasource_filter DATASOURCE_FILTER
-                        data source code to analayze, defaults to all
   -f RELATIONSHIP_FILTER, --relationship_filter RELATIONSHIP_FILTER
                         filter options 1=No Relationships, 2=Include possible
                         matches, 3=Include possibly related and disclosed.
                         Defaults to 3
   -a, --for_audit       export csv file for audit
   -D, --debug           print debug statements
+
+
+  -d DATASOURCE_FILTER, --datasource_filter DATASOURCE_FILTER
+                        data source code to analayze, defaults to all
   -k CHUNK_SIZE, --chunk_size CHUNK_SIZE
                         defaults to 1000000
   -t THREAD_COUNT, --thread_count THREAD_COUNT
@@ -78,6 +80,7 @@ auto-scale, you should give it a additional resources as well.*
 
 1. Simply place the the following files in a directory of your choice ...  (Ideally along with poc-viewer.py)
     - [DBSnapshot.py](DBSnapshot.py) 
+    - [G2Snapshot.py](G2Snapshot.py) 
 
 2. Set PYTHONPATH environment variable to python directory where you installed Senzing.
     - Example: export PYTHONPATH=/opt/senzing/g2/python
