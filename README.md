@@ -2,9 +2,27 @@
 
 ## Overview
 
-The [DBSnapshot.py](DBSnapshot.py) utility is a version of the G2Snapshot utility that interacts directly with the database and is multi-threaded for improved performance.
+The following snapshot utilities analyze the data in a Senzing repository to calculate the following reports ...
+- **dataSourceSummary** - calculates the duplicates, possible matches and relations by data source.
+- **crossSourceSummary** - calculates the duplicates, possible matches and relations across data sources.
+- **entitySizeBreakdown** - calculates how many entities have how many records, highlighting possible instances of overmatching.
+
+These reports are placed in a json file that can be viewed with the G2Explorer located 
+here ... https://github.com/Senzing/g2explorer
+
+It can optionally export the entire entity resolution result set for use in the G2Audit utility located 
+here ... https://github.com/Senzing/g2audit
 
 Taking a snapshot is part of Senzing's Exploratory Data Analysis toolset which you can read more about here ... https://senzing.zendesk.com/hc/en-us/sections/360009388534-Exploratory-Data-Analysis-EDA-
+
+There are two python scripts in this repository ...
+- [DBSnapshot.py](DBSnapshot.py) is the latest version that interacts directly with the database and is multi-threaded 
+for improved performance on large data sets.
+- [G2Snapshot.py](G2Snapshot.py) is the legacy version that only uses the API.  It does not require direct database access, but 
+may not perform well on larger data sets.
+
+*You will want to install database access as described in the prerequisites below and use DBSnapshot.py on large databases.  
+DBSnapshot is documented here but G2Snapshot has all the same parameters except thread_count, chunk_size and use_api.*
 
 Usage:
 
