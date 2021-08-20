@@ -16,19 +16,19 @@ here ... https://github.com/Senzing/g2audit
 Taking a snapshot is part of Senzing's Exploratory Data Analysis toolset which you can read more about here ... https://senzing.zendesk.com/hc/en-us/sections/360009388534-Exploratory-Data-Analysis-EDA-
 
 There are two python scripts in this repository ...
-- [DBSnapshot.py](DBSnapshot.py) is the latest version that interacts directly with the database and is multi-threaded 
+- [G2Snapshot.py](G2Snapshot.py) is the latest version that interacts directly with the database and is multi-threaded 
 for improved performance on large data sets.
-- [G2Snapshot.py](G2Snapshot.py) is the legacy version that only uses the API.  It does not require direct database access, but 
-may not perform well on larger data sets.
+- [G2Snapshot-api-only.py](G2Snapshot-api-only.py) is the legacy version that only uses the API.  It does not require direct database access, 
+but may not perform well on larger data sets.
 
-*You will want to install database access as described in the prerequisites below and use DBSnapshot.py on large databases.  DBSnapshot 
-is documented here but G2Snapshot has all the same parameters except datasource_filter, thread_count, chunk_size, use_api.*
+*You will want to install database access as described in the prerequisites below and use G2Snapshot.py on large databases.  If you do not
+have database access, you will have to use the G2Snapshot-api-only version which runs slower and has less functionality.*
 
 Usage:
 
 ```console
-python3 DBSnapshot.py --help
-usage: DBSnapshot.py [-h] [-c CONFIG_FILE_NAME] [-o OUTPUT_FILE_ROOT]
+python3 G2Snapshot.py --help
+usage: G2Snapshot.py [-h] [-c CONFIG_FILE_NAME] [-o OUTPUT_FILE_ROOT]
                      [-s SAMPLE_SIZE] [-d DATASOURCE_FILTER]
                      [-f RELATIONSHIP_FILTER] [-a] [-D] [-k CHUNK_SIZE]
                      [-t THREAD_COUNT] [-u]
@@ -49,8 +49,9 @@ optional arguments:
                         Defaults to 3
   -a, --for_audit       export csv file for audit
   -D, --debug           print debug statements
-
-
+```
+* the following are not in G2Snapshot-api-only *
+```console
   -d DATASOURCE_FILTER, --datasource_filter DATASOURCE_FILTER
                         data source code to analayze, defaults to all
   -k CHUNK_SIZE, --chunk_size CHUNK_SIZE
@@ -79,8 +80,8 @@ auto-scale, you should give it a additional resources as well.*
 ### Installation
 
 1. Simply place the the following files in a directory of your choice ...  (Ideally along with poc-viewer.py)
-    - [DBSnapshot.py](DBSnapshot.py) 
     - [G2Snapshot.py](G2Snapshot.py) 
+    - [G2Snapshot-api-only.py](G2Snapshot-api-only.py) 
 
 2. Set PYTHONPATH environment variable to python directory where you installed Senzing.
     - Example: export PYTHONPATH=/opt/senzing/g2/python
@@ -94,7 +95,7 @@ Its a good idea to place these settings in your .bashrc file to make sure the en
 
 To run for all data sources ...
 ```console
-python3 DBSnapshot.py -o /myproject/snapshots/snapshot-mm-dd-yyyy 
+python3 G2Snapshot.py -o /myproject/snapshots/snapshot-mm-dd-yyyy 
 ```
 This will result in the following files being generated ...
 - /myproject/snapshots/snapshot-mm-dd-yyyy.json
@@ -106,7 +107,7 @@ as snapshots can be compared through time*
 
 Or, for a specific data source ...
 ```console
-python3 DBSnapshot.py -o /myproject/snapshots/snapshot1-mm-dd-yyyy -d mydatasource
+python3 G2Snapshot.py -o /myproject/snapshots/snapshot1-mm-dd-yyyy -d mydatasource
 ```
 
 *Please note the the -d data source option was added as normally there is **one primary data source** you are trying to resolve against itself 
