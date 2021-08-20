@@ -50,7 +50,7 @@ optional arguments:
   -a, --for_audit       export csv file for audit
   -D, --debug           print debug statements
 ```
-* the following are not in G2Snapshot-api-only *
+*the following are not in G2Snapshot-api-only*
 ```console
   -d DATASOURCE_FILTER, --datasource_filter DATASOURCE_FILTER
                         data source code to analayze, defaults to all
