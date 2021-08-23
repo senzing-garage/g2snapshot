@@ -79,7 +79,7 @@ auto-scale, you should give it a additional resources as well.*
 
 ### Installation
 
-1. Place the the following files in a directory of your choice:
+1. Place the following files in a directory of your choice:
     - [G2Snapshot.py](G2Snapshot.py) 
     - [G2Snapshot-api-only.py](G2Snapshot-api-only.py) 
 
@@ -110,11 +110,11 @@ Or, for a specific data source:
 python3 G2Snapshot.py -o /myproject/snapshots/snapshot1-mm-dd-yyyy -d mydatasource
 ```
 
-*Please note the the -d data source option was added as normally there is **one primary data source** you are trying to resolve against itself 
+*Please note the -d data source option was added as normally there is **one primary data source** you are trying to resolve against itself 
 and see what other data sources match it. For instance you might want to compare your customers against a watch list or reference data such
 as a list of registered companies.*
 
-*Do not use the -d option iterively for each data source.   It would be much more efficient to run the snapshot wide open as it will analyze
+*Do not use the -d option iterively for each data source.   It would be more efficient to run the snapshot wide open as it will analyze
 all the data sources against each other.*
 
 Optional parameters:
