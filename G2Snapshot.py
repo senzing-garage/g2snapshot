@@ -506,9 +506,9 @@ def writeCsvRecord(csvData, exportFileHandle):
     columnValues.append(str(csvData['RESOLVED_ENTITY_ID']))
     columnValues.append(str(csvData['RELATED_ENTITY_ID']))
     columnValues.append(str(csvData['MATCH_LEVEL']))
-    columnValues.append(csvData['MATCH_KEY'][1:] if csvData['MATCH_KEY'] else '')
-    columnValues.append(csvData['DATA_SOURCE'])
-    columnValues.append(csvData['RECORD_ID'])
+    columnValues.append('"' + (csvData['MATCH_KEY'][1:] if csvData['MATCH_KEY'] else '') + '"')
+    columnValues.append('"' + csvData['DATA_SOURCE'] + '"')
+    columnValues.append('"' + csvData['RECORD_ID'] + '"')
     try: exportFileHandle.write(','.join(columnValues) + '\n')  
     except IOError as err: 
         print('\nERROR: cannot write to %s \n%s\n' % (csvFilePath, err))
