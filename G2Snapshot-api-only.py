@@ -12,9 +12,9 @@ from datetime import datetime, timedelta
 import configparser
 
 #--senzing python classes
-try: 
+try:
     import G2Paths
-    from senzing import G2ConfigMgr, G2Engine, G2EngineFlags, G2Exception, G2IniParams, G2Product
+    from senzing import G2ConfigMgr, G2Diagnostic, G2Engine, G2EngineFlags, G2Exception, G2IniParams, G2Product
 except:
     print('')
     print('Please export PYTHONPATH=<path to senzing python directory>')
@@ -410,6 +410,9 @@ def processEntities():
                     response = 'None' if not response else response
                     print('warning: entity %s response %s' % (entityID, response))
                     continue
+
+                if int(entityID) == 100227:
+                    print(json.dumps(jsonData, indent=4))
 
                 for ftypeCode in jsonData['RESOLVED_ENTITY']['FEATURES']:
 
