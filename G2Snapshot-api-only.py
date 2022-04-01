@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 import configparser
 
 #--senzing python classes
-try: 
+try:
     import G2Paths
     from G2Product import G2Product
     from G2Engine import G2Engine
@@ -36,11 +36,11 @@ def nextExportRecord(exportHandle, exportHeaders = None):
         return json.loads(rowData)
 
     try: rowData = next(csv.reader([rowString.decode()[0:-1]]))
-    except: 
-        print(' err: ' + rowString.decode())        
+    except:
+        print(' err: ' + rowString.decode())
         return None
 
-    if exportHeaders: 
+    if exportHeaders:
         return dict(zip(exportHeaders, rowData))
 
     return rowData
@@ -125,8 +125,8 @@ def writeCsvRecord(csvData):
     columnValues.append(csvData['MATCH_KEY'][1:] if csvData['MATCH_KEY'] else '')
     columnValues.append(csvData['DATA_SOURCE'])
     columnValues.append(csvData['RECORD_ID'])
-    try: exportFileHandle.write(','.join(columnValues) + '\n')        
-    except IOError as err: 
+    try: exportFileHandle.write(','.join(columnValues) + '\n')
+    except IOError as err:
         print('')
         print('ERROR: cannot write to %s \n%s' % (exportFilePath, err))
         print('')
@@ -165,7 +165,7 @@ def processEntities():
     if exportType == 'JSON':  #--specify what sections for json
         print('\nExport type is JSON')
         exportFlags = exportFlags | G2EngineFlags.G2_ENTITY_INCLUDE_RECORD_DATA
-        exportFlags = exportFlags | G2EngineFlags.G2_ENTITY_INCLUDE_RECORD_MATCHING_INFO 
+        exportFlags = exportFlags | G2EngineFlags.G2_ENTITY_INCLUDE_RECORD_MATCHING_INFO
         exportFlags = exportFlags | G2EngineFlags.G2_ENTITY_INCLUDE_RELATED_MATCHING_INFO
         exportFlags = exportFlags | G2EngineFlags.G2_ENTITY_INCLUDE_RELATED_RECORD_SUMMARY
 
@@ -183,11 +183,11 @@ def processEntities():
 
     #--initialize the export
     print('\nQuerying entities ...')
-    try: 
+    try:
         if exportType == 'JSON':
             exportHandle = g2Engine.exportJSONEntityReport(exportFlags)
         else:
-            exportHandle = g2Engine.exportCSVEntityReportV2(",".join(exportFields), exportFlags)
+            exportHandle = g2Engine.exportCSVEntityReport(",".join(exportFields), exportFlags)
             exportHeaders = nextExportRecord(exportHandle)
 
     except G2Exception as err:
@@ -243,7 +243,7 @@ def processEntities():
                 rowList.append(exportRecord)
                 exportRecord = nextExportRecord(exportHandle, exportHeaders)
 
-        #--summarize entity resume 
+        #--summarize entity resume
         entityID = rowList[0]['RESOLVED_ENTITY_ID']
         for rowData in rowList:
             relatedID = rowData['RELATED_ENTITY_ID']
@@ -260,7 +260,7 @@ def processEntities():
                 matchCategory = 'AMBIGUOUS_MATCH'
             elif rowData['MATCH_LEVEL'] == '2':
                 matchCategory = 'POSSIBLE_MATCH'
-            else:          
+            else:
                 matchCategory = 'POSSIBLY_RELATED'
 
             if relatedID not in resumeData:
@@ -300,7 +300,7 @@ def processEntities():
             recordCount = resumeData['0']['dataSources'][dataSource1]
 
             #--this just updates entity and record count for the data source
-            updateStatpack(dataSource1, None, None, 1, recordCount, None) 
+            updateStatpack(dataSource1, None, None, 1, recordCount, None)
 
             if recordCount == 1:
                 updateStatpack(dataSource1, None, 'SINGLE', 1, 0, entityID)
@@ -331,7 +331,7 @@ def processEntities():
         #--status display
         batchEntitySizeSum += entitySize
         if entitySize > maxEntitySize:
-            maxEntitySize = entitySize 
+            maxEntitySize = entitySize
         relationCount = len(resumeData) - 1
         batchRelationCountSum += relationCount
         if relationCount > maxRelationCount:
@@ -360,7 +360,7 @@ def processEntities():
         #--get out if errors hit or out of records
         if shutDown or not rowData:
             break
- 
+
     #--get out if errors hit
     if shutDown:
         return 1
@@ -399,16 +399,16 @@ def processEntities():
             #--gather feature statistics
             entityInfo = {}
             if entitySize > 1:
-                try: 
+                try:
                     response = bytearray()
-                    retcode = g2Engine.getEntityByEntityIDV2(int(entityID), getFlags, response)
+                    retcode = g2Engine.getEntityByEntityID(int(entityID), response, getFlags)
                     response = response.decode() if response else ''
                 except G2Exception as err:
                     print(str(err))
                     #shutDown = True
                     #return 1
                     continue
-                try: 
+                try:
                     jsonData = json.loads(response)
                 except:
                     response = 'None' if not response else response
@@ -417,7 +417,7 @@ def processEntities():
 
                 for ftypeCode in jsonData['RESOLVED_ENTITY']['FEATURES']:
 
-                    #-count how many with special cases 
+                    #-count how many with special cases
                     distinctFeatureCount = 0
                     for distinctFeature in jsonData['RESOLVED_ENTITY']['FEATURES'][ftypeCode]:
                         if ftypeCode == 'GENDER' and distinctFeature['FEAT_DESC'] not in ('M', 'F'): #--don't count invalid genders
@@ -472,7 +472,7 @@ def processEntities():
                     elif ftypeCode == 'ADDRESS' and distinctFeatureCount > maxAddrCnt:
                         needsReview = True
 
-                    if needsReview: 
+                    if needsReview:
                         reviewFeatures.append(ftypeCode)
 
                 if reviewFeatures:
@@ -534,7 +534,7 @@ if __name__ == '__main__':
 
     #--defaults
     try: iniFileName = G2Paths.get_G2Module_ini_path()
-    except: iniFileName = '' 
+    except: iniFileName = ''
     outputFileRoot = os.getenv('SENZING_OUTPUT_FILE_ROOT') if os.getenv('SENZING_OUTPUT_FILE_ROOT', None) else None
     sampleSize = int(os.getenv('SENZING_SAMPLE_SIZE')) if os.getenv('SENZING_SAMPLE_SIZE', None) and os.getenv('SENZING_SAMPLE_SIZE').isdigit() else 1000
     relationshipFilter = int(os.getenv('SENZING_RELATIONSHIP_FILTER')) if os.getenv('SENZING_RELATIONSHIP_FILTER', None) and os.getenv('SENZING_RELATIONSHIP_FILTER').isdigit() else 3
@@ -562,13 +562,13 @@ if __name__ == '__main__':
         g2Engine = G2Engine()
         iniParamCreator = G2IniParams()
         iniParams = iniParamCreator.getJsonINIParams(iniFileName)
-        g2Engine.initV2('G2Snapshot', iniParams, False)
+        g2Engine.init('G2Snapshot', iniParams, False)
     except G2Exception as err:
         print('\n%s\n' % str(err))
         sys.exit(1)
 
     #--get the version information
-    try: 
+    try:
         g2Product = G2Product()
         apiVersion = json.loads(g2Product.version())
     except G2Exception.G2Exception as err:
@@ -577,18 +577,18 @@ if __name__ == '__main__':
     g2Product.destroy()
 
     #--get needed config data
-    try: 
+    try:
         g2ConfigMgr = G2ConfigMgr()
-        g2ConfigMgr.initV2('pyG2ConfigMgr', iniParams, False)
-        defaultConfigID = bytearray() 
+        g2ConfigMgr.init('pyG2ConfigMgr', iniParams, False)
+        defaultConfigID = bytearray()
         g2ConfigMgr.getDefaultConfigID(defaultConfigID)
-        defaultConfigDoc = bytearray() 
+        defaultConfigDoc = bytearray()
         g2ConfigMgr.getConfig(defaultConfigID, defaultConfigDoc)
         cfgData = json.loads(defaultConfigDoc.decode())
         g2ConfigMgr.destroy()
         ftypeCodeLookup = {}
         for cfgRecord in cfgData['G2_CONFIG']['CFG_FTYPE']:
-            ftypeCodeLookup[cfgRecord['FTYPE_CODE']] = cfgRecord 
+            ftypeCodeLookup[cfgRecord['FTYPE_CODE']] = cfgRecord
     except Exception as err:
         print('\n%s\n' % str(err))
         sys.exit(1)
@@ -618,13 +618,13 @@ if __name__ == '__main__':
         columnHeaders.append('MATCH_KEY')
         columnHeaders.append('DATA_SOURCE')
         columnHeaders.append('RECORD_ID')
-        try: 
+        try:
             exportFileHandle = open(exportFilePath, 'w')
-            exportFileHandle.write(','.join(columnHeaders) + '\n')        
-        except IOError as err: 
+            exportFileHandle.write(','.join(columnHeaders) + '\n')
+        except IOError as err:
             print('\nERROR: cannot write to %s \n%s\n' % (exportFilePath, err))
             sys.exit(1)
-            
+
     #--get entities and relationships
     statPack = {}
     statPack['SOURCE'] = 'G2Snapshot'
@@ -643,7 +643,7 @@ if __name__ == '__main__':
         if type(statPack[stat]) not in (list, dict):
             print ('%s = %s' % (stat, statPack[stat]))
     with open(statsFilePath, 'w') as outfile:
-        json.dump(statPack, outfile)    
+        json.dump(statPack, outfile)
     print('')
 
     elapsedMins = round((time.time() - procStartTime) / 60, 1)
