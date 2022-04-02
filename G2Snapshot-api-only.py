@@ -411,9 +411,6 @@ def processEntities():
                     print('warning: entity %s response %s' % (entityID, response))
                     continue
 
-                if int(entityID) == 100227:
-                    print(json.dumps(jsonData, indent=4))
-
                 for ftypeCode in jsonData['RESOLVED_ENTITY']['FEATURES']:
 
                     #-count how many with special cases
