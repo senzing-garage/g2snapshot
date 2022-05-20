@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support SenzingAPI 3.0.0
 
+## [2.0.1] - 2022-05-20
+
+### Added to 2.0.1
+
+- Add support for SenzingAPI 2.x
+
 ## [1.3.0] - 2021-08-05
 
 ### Added to 1.3.0
