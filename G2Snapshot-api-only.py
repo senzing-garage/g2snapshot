@@ -14,7 +14,8 @@ import configparser
 # --senzing python classes
 try:
     import G2Paths
-    from senzing import G2ConfigMgr, G2Diagnostic, G2Engine, G2EngineFlags, G2Exception, G2IniParams, G2Product
+    from senzing import G2ConfigMgr, G2Diagnostic, G2Engine, G2EngineFlags, G2Exception, G2Product
+    from G2IniParams import G2IniParams
 except:
     print('')
     print('Please export PYTHONPATH=<path to senzing python directory>')
