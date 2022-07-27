@@ -540,7 +540,6 @@ def processEntities(threadCount):
 
     begEntityId = statPack['PROCESS']['LAST_ENTITY_ID'] + 1
     endEntityId = begEntityId + chunkSize
-
     while True:
         if not datasourceFilter:
             print('Getting entities from %s to %s ...' % (begEntityId, endEntityId))
@@ -931,7 +930,7 @@ if __name__ == '__main__':
 
     # capture the command line arguments
     argParser = argparse.ArgumentParser()
-    argParser.add_argument('-c', '--config_file_name', default=configFileName, help='name of the senzing config file, defaults to %s' % configFileName)
+    argParser.add_argument('-c', '--config_file_name', dest='config_file_name', default=None, help='name of the senzing config file, defaults to %s' % configFileName)
     argParser.add_argument('-o', '--output_file_root', default=outputFileRoot, help='root name for files created such as "/project/snapshots/snapshot1"')
     argParser.add_argument('-s', '--sample_size', type=int, default=sampleSize, help='defaults to %s' % sampleSize)
     argParser.add_argument('-d', '--datasource_filter', help='data source code to analayze, defaults to all')
@@ -943,7 +942,6 @@ if __name__ == '__main__':
     argParser.add_argument('-q', '--quiet', action='store_true', default=False, help="doesn't ask to confirm before overwrite files")
 
     args = argParser.parse_args()
-    configFileName = args.config_file_name
     outputFileRoot = args.output_file_root
     sampleSize = args.sample_size
     datasourceFilter = args.datasource_filter
@@ -983,7 +981,19 @@ if __name__ == '__main__':
     try:
         g2Engine = G2Engine()
         iniParamCreator = G2IniParams()
-        iniParams = iniParamCreator.getJsonINIParams(configFileName)
+
+        if args.config_file_name:
+
+            iniParams = iniParamCreator.getJsonINIParams(args.config_file_name)
+
+        elif os.getenv("SENZING_ENGINE_CONFIGURATION_JSON"):
+
+            iniParams = os.getenv("SENZING_ENGINE_CONFIGURATION_JSON")
+
+        else:
+
+            iniParams = iniParamCreator.getJsonINIParams(configFileName)
+
         if api_version_major > 2:
             g2Engine.init('pyG2Snapshot', iniParams, False)
         else:
