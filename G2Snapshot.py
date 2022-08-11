@@ -963,14 +963,6 @@ if __name__ == '__main__':
         iniParamCreator = G2IniParams()
         iniParams = iniParamCreator.getJsonINIParams(ini_file_name)
 
-    if not json.loads(iniParams)['SQL']['CONNECTION']:
-        print('')
-        print('CONNECTION parameter not found in [SQL] section of the ini file')
-        print('')
-        sys.exit(1)
-    else:
-        g2dbUri = json.loads(iniParams)['SQL']['CONNECTION']
-
 
     # get the version information
     try:
@@ -994,6 +986,14 @@ if __name__ == '__main__':
     except G2Exception as err:
         print('\n%s\n' % str(err))
         sys.exit(1)
+
+    if not json.loads(iniParams)['SQL']['CONNECTION']:
+        print('')
+        print('CONNECTION parameter not found in [SQL] section of the ini file')
+        print('')
+        sys.exit(1)
+    else:
+        g2dbUri = json.loads(iniParams)['SQL']['CONNECTION']
 
     # get needed config data
     try:
