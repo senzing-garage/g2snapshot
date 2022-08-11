@@ -3,6 +3,7 @@
 import argparse
 import csv
 import os
+import pathlib
 import random
 import signal
 import sys
@@ -952,22 +953,6 @@ if __name__ == '__main__':
     use_api = args.use_api
     quietOn = args.quiet
 
-    # get parameters from ini file
-    if not os.path.exists(configFileName):
-        print('')
-        print('An ini file was not found, please supply with the -c parameter.')
-        print('')
-        sys.exit(1)
-    iniParser = configparser.ConfigParser()
-    iniParser.read(configFileName)
-    try:
-        g2dbUri = iniParser.get('SQL', 'CONNECTION')
-    except:
-        print('')
-        print('CONNECTION parameter not found in [SQL] section of the ini file')
-        print('')
-        sys.exit(1)
-
     # get the version information
     try:
         g2Product = G2Product()
@@ -980,19 +965,22 @@ if __name__ == '__main__':
     # try to initialize the g2engine
     try:
         g2Engine = G2Engine()
-        iniParamCreator = G2IniParams()
+        
+        #Check if INI file or env var is specified, otherwise use default INI file
+        ini_file_name = None
 
         if args.config_file_name:
-
-            iniParams = iniParamCreator.getJsonINIParams(args.config_file_name)
-
+            ini_file_name = pathlib.Path(args.config_file_name)
         elif os.getenv("SENZING_ENGINE_CONFIGURATION_JSON"):
-
             iniParams = os.getenv("SENZING_ENGINE_CONFIGURATION_JSON")
-
         else:
+            ini_file_name = pathlib.Path(G2Paths.get_G2Module_ini_path())
 
-            iniParams = iniParamCreator.getJsonINIParams(configFileName)
+        if ini_file_name:
+            G2Paths.check_file_exists_and_readable(ini_file_name)
+            iniParamCreator = G2IniParams()
+            iniParams = iniParamCreator.getJsonINIParams(ini_file_name)
+
 
         if api_version_major > 2:
             g2Engine.init('pyG2Snapshot', iniParams, False)
