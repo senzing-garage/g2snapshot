@@ -15,12 +15,6 @@ here: https://github.com/Senzing/g2audit
 
 Taking a snapshot is part of Senzing's Exploratory Data Analysis toolset which you can read more about here: https://senzing.zendesk.com/hc/en-us/sections/360009388534-Exploratory-Data-Analysis-EDA-
 
-There are two python scripts in this repository:
-- [G2Snapshot.py](G2Snapshot.py) is the latest version that interacts directly with the database and is multi-threaded 
-for improved performance on large data sets.
-- [G2Snapshot-api-only.py](G2Snapshot-api-only.py) is the legacy version that only uses the API.  It does not require direct database access, 
-but may not perform well on larger data sets.
-
 *You will want to install database access as described in the prerequisites below and use G2Snapshot.py on large databases.  If you do not
 have database access, you will have to use the G2Snapshot-api-only version which runs slower and has less functionality.*
 
@@ -81,15 +75,9 @@ auto-scale, you should give it a additional resources as well.*
 
 1. Place the following files in a directory of your choice:
     - [G2Snapshot.py](G2Snapshot.py) 
-    - [G2Snapshot-api-only.py](G2Snapshot-api-only.py) 
 
-2. Set PYTHONPATH environment variable to python directory where you installed Senzing.
-    - Example: export PYTHONPATH=/opt/senzing/g2/python
+2. The senzing environment must be set to your project by sourceing the setupEnv script created for it.
 
-3. The senzing environment must be set to your project by sourceing the setupEnv script created for it.
-
-Its a good idea to place these settings in your .bashrc file to make sure the enviroment is always setup and ready to go.
-*These will already be set if you are using a Senzing docker image such as the sshd or console.*
 
 ### Typical use
 
@@ -97,11 +85,16 @@ To run for all data sources:
 ```console
 python3 G2Snapshot.py -o /myproject/snapshots/snapshot-mm-dd-yyyy 
 ```
+or if you are planning to perform an audit ...
+```console
+python3 G2Snapshot.py -ao /myproject/snapshots/snapshot-mm-dd-yyyy
+```
+
 This will result in the following files being generated ...
 - /myproject/snapshots/snapshot-mm-dd-yyyy.json
 - /myproject/snapshots/snapshot-mm-dd-yyyy.csv (if you use -a for_audit option)
 
-*Of course you will want to change the -o output_path to a file and directory of your choice.  It is a good idea though to create a snapshots directory and include the date you took the snapshot in your file name 
+*You will want to change the -o output_path to a file and directory of your choice.  It is a good idea though to create a snapshots directory and include the date you took the snapshot in your file name
 as snapshots can be compared through time*
 
 
