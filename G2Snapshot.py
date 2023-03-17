@@ -290,6 +290,22 @@ def process_resume(statPack, resume_rows, csvFileHandle):
     # resolved entity stats
     statPack['TOTAL_ENTITY_COUNT'] += 1
     statPack['TOTAL_RECORD_COUNT'] += entitySize
+
+    # summarize relationships by data source
+    relSummary = {}
+    for relatedID in resumeData:
+        if relatedID == '0':
+            continue
+        matchCategory = resumeData[relatedID]['matchCategory']
+        if matchCategory not in relSummary:
+            relSummary[matchCategory] = {}
+        for dataSource in resumeData[relatedID]['dataSources']:
+            if dataSource not in relSummary[matchCategory]:
+                relSummary[matchCategory][dataSource] = [relatedID]
+            else:
+                relSummary[matchCategory][dataSource].append(relatedID)
+
+    # resolved entity stats
     for dataSource1 in resumeData['0']['dataSources']:
         recordCount = resumeData['0']['dataSources'][dataSource1]
 
@@ -299,7 +315,7 @@ def process_resume(statPack, resume_rows, csvFileHandle):
         if recordCount == 1:
             statPack = updateStatpack(statPack, dataSource1, None, 'SINGLE', 1, 0, entityID, randomIndex)
         else:
-            statPack = updateStatpack(statPack, dataSource1, None, 'DUPLICATE', 1, recordCount, entityID, randomIndex)
+            statPack = updateStatpack(statPack, dataSource1, None, 'DUPLICATE', 1, recordCount-1, entityID, randomIndex)
 
         # cross matches
         for dataSource2 in resumeData['0']['dataSources']:
@@ -308,20 +324,16 @@ def process_resume(statPack, resume_rows, csvFileHandle):
             statPack = updateStatpack(statPack, dataSource1, dataSource2, 'MATCH', 1, recordCount, entityID, randomIndex)
 
         # related entity stats
-        for relatedID in resumeData:
-            if relatedID == '0':
-                continue
-            matchCategory = resumeData[relatedID]['matchCategory']
-            statPack[categoryTotalStat[matchCategory]] += 1
-            for dataSource2 in resumeData[relatedID]['dataSources']:
-                # commented out to use target entity's record count
-                # recordCount = resumeData[relatedID]['dataSources'][dataSource2]
-                if dataSource2 == dataSource1:
-                    dataSource2 = None
+        for matchCategory in relSummary:
+            for dataSource2 in relSummary[matchCategory]:
+                relationshipCount = len(relSummary[matchCategory][dataSource2])
+                arbitraryRelatedID = relSummary[matchCategory][dataSource2][0] # just log one of the relationIDs
 
-                # avoid double counting within data source (can't be avoided across data sources)
-                if entityID < int(relatedID) or dataSource2:
-                    statPack = updateStatpack(statPack, dataSource1, dataSource2, matchCategory, 1, recordCount, str(entityID) + ' ' + relatedID, randomIndex)
+                if dataSource2 == dataSource1: # same data source relation
+                    statPack = updateStatpack(statPack, dataSource1, None, matchCategory, relationshipCount, recordCount, str(entityID) + ' ' + str(arbitraryRelatedID), randomIndex)
+                else:
+                    statPack = updateStatpack(statPack, dataSource1, dataSource2, matchCategory, relationshipCount, recordCount, str(entityID) + ' ' + str(arbitraryRelatedID), randomIndex)
+
     return statPack
 
 
@@ -1105,7 +1117,8 @@ if __name__ == '__main__':
                       'join DSRC_RECORD c on c.ENT_SRC_KEY = b.ENT_SRC_KEY and c.DSRC_ID = b.DSRC_ID and c.ETYPE_ID = b.ETYPE_ID '\
                       'where a.RES_ENT_ID = ?'
 
-        if not exportCsv:  # don't need related record_id
+        # disable this optimization, otherwise does not reflect true record count
+        if False: #not exportCsv:  # don't need related record_id
             sqlRelations = 'select '\
                            ' a.RES_ENT_ID as RESOLVED_ENTITY_ID, '\
                            ' a.REL_ENT_ID as RELATED_ENTITY_ID, '\
