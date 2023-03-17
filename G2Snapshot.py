@@ -1117,37 +1117,19 @@ if __name__ == '__main__':
                       'join DSRC_RECORD c on c.ENT_SRC_KEY = b.ENT_SRC_KEY and c.DSRC_ID = b.DSRC_ID and c.ETYPE_ID = b.ETYPE_ID '\
                       'where a.RES_ENT_ID = ?'
 
-        # disable this optimization, otherwise does not reflect true record count
-        if False: #not exportCsv:  # don't need related record_id
-            sqlRelations = 'select '\
-                           ' a.RES_ENT_ID as RESOLVED_ENTITY_ID, '\
-                           ' a.REL_ENT_ID as RELATED_ENTITY_ID, '\
-                           ' b.LAST_ERRULE_ID as ERRULE_ID, '\
-                           ' b.IS_DISCLOSED, '\
-                           ' b.IS_AMBIGUOUS, '\
-                           ' b.MATCH_KEY, '\
-                           ' d.DSRC_ID '\
-                           'from RES_REL_EKEY a '\
-                           'join RES_RELATE b on b.RES_REL_ID = a.RES_REL_ID '\
-                           'join RES_ENT_OKEY c on c.RES_ENT_ID = a.REL_ENT_ID '\
-                           'join OBS_ENT d on d.OBS_ENT_ID = c.OBS_ENT_ID '\
-                           'where a.RES_ENT_ID = ?'
-        else:
-            sqlRelations = 'select '\
-                           ' a.RES_ENT_ID as RESOLVED_ENTITY_ID, '\
-                           ' a.REL_ENT_ID as RELATED_ENTITY_ID, '\
-                           ' b.LAST_ERRULE_ID as ERRULE_ID, '\
-                           ' b.IS_DISCLOSED, '\
-                           ' b.IS_AMBIGUOUS, '\
-                           ' b.MATCH_KEY, '\
-                           ' d.DSRC_ID, '\
-                           ' e.RECORD_ID '\
-                           'from RES_REL_EKEY a '\
-                           'join RES_RELATE b on b.RES_REL_ID = a.RES_REL_ID '\
-                           'join RES_ENT_OKEY c on c.RES_ENT_ID = a.REL_ENT_ID '\
-                           'join OBS_ENT d on d.OBS_ENT_ID = c.OBS_ENT_ID '\
-                           'join DSRC_RECORD e on e.ENT_SRC_KEY = d.ENT_SRC_KEY and e.DSRC_ID = d.DSRC_ID and e.ETYPE_ID = d.ETYPE_ID '\
-                           'where a.RES_ENT_ID = ?'
+        sqlRelations = 'select '\
+                       ' a.RES_ENT_ID as RESOLVED_ENTITY_ID, '\
+                       ' a.REL_ENT_ID as RELATED_ENTITY_ID, '\
+                       ' b.LAST_ERRULE_ID as ERRULE_ID, '\
+                       ' b.IS_DISCLOSED, '\
+                       ' b.IS_AMBIGUOUS, '\
+                       ' b.MATCH_KEY, '\
+                       ' d.DSRC_ID '\
+                       'from RES_REL_EKEY a '\
+                       'join RES_RELATE b on b.RES_REL_ID = a.RES_REL_ID '\
+                       'join RES_ENT_OKEY c on c.RES_ENT_ID = a.REL_ENT_ID '\
+                       'join OBS_ENT d on d.OBS_ENT_ID = c.OBS_ENT_ID '\
+                       'where a.RES_ENT_ID = ?'
 
         #--adjusts the parameter syntax based on the database type
         if api_version_major > 2:
