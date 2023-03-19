@@ -10,7 +10,6 @@ import sys
 import time
 import math
 from datetime import datetime, timedelta
-import configparser
 import textwrap
 
 try:
