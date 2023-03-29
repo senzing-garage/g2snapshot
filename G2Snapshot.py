@@ -13,12 +13,12 @@ from datetime import datetime, timedelta
 import configparser
 import textwrap
 
+import json
 try:
-    import orjson as json
-    orjson = True
+    import orjson
+    use_orjson = True
 except:
-    import json
-    orjson = False
+    use_orjson = False
 
 # concurrency
 from multiprocessing import Process, Queue, Value
@@ -660,7 +660,7 @@ def get_entity_features(g2Engine, esb_data):
         response = response.decode() if response else ''
     except G2Exception as err:
         return {}
-    jsonData = json.loads(response)
+    jsonData = orjson.loads(response) if use_orjson else json.loads(response)
     featureInfo = {}
     for ftypeCode in jsonData['RESOLVED_ENTITY']['FEATURES']:
         distinctFeatureCount = 0
@@ -732,10 +732,7 @@ def write_stat_pack(statPack, statData):
         del statPack['ENTITY_SIZE_BREAKDOWN']
 
     with open(statsFileName, 'w') as outfile:
-        if orjson:
-            outfile.write(json.dumps(statPack, outfile, option=json.OPT_INDENT_2).decode('utf-8'))
-        else:
-            json.dump(statPack, outfile, indent=4)
+        json.dump(statPack, outfile, indent=4)
 
     return statPack
 
@@ -898,10 +895,7 @@ def calculateESBStats():
     print()
 
     with open(statsFilePath, 'w') as outfile:
-        if orjson:
-            outfile.write(json.dumps(statPack, outfile, option=json.OPT_INDENT_2).decode('utf-8'))
-        else:
-            json.dump(statPack, outfile, indent=4)
+        json.dump(statPack, outfile, indent=4)
 
     g2Engine.destroy()
 
@@ -998,9 +992,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if not json.loads(iniParams)['SQL']['CONNECTION']:
-        print('')
-        print('CONNECTION parameter not found in [SQL] section of the ini file')
-        print('')
+        print('\nCONNECTION parameter not found in [SQL] section of the ini file\n')
         sys.exit(1)
     else:
         g2dbUri = json.loads(iniParams)['SQL']['CONNECTION']
