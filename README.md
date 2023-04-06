@@ -63,7 +63,7 @@ optional arguments:
 
 ### Prerequisites
 - Python 3.6 or higher
-- Senzing API version 1.10 or higher
+- Senzing API version 3.0 or higher
 - database support for your Senzing database
     - psycopg2 (for postgres)
     - pyodbc (and supporting drivers) for all other databases 
