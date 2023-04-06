@@ -76,11 +76,6 @@ def process_entity_queue_db(thread_id, threadStop, entity_queue, resume_queue, l
             # print('read entity_queue %s' % row)
             resume_rows = get_resume_db(local_dbo, queue_data)
             if resume_rows:
-
-                # hack for determining if an ambiguous entity
-
-
-
                 queue_write(resume_queue, resume_rows)
     # print('process_entity_queue %s shut down with %s left in the queue' % (thread_id, entity_queue.qsize()))
 
@@ -159,7 +154,7 @@ def get_resume_db(local_dbo, resolved_id):
             resume_rows.append(rowData)
         # print('   fetching relationships took %s seconds' % str(round(time.time() - queryStartTime,2)))
 
-    # hack to determine if this is an ambiguous entity
+    # abndoned hack to determine if this is an ambiguous entity
     #if ambiguousCount and len(local_dbo.fetchAllRows(local_dbo.sqlExec(sqlAmbiguous, [resolved_id, ]))) > 0:
     #    resume_rows[0]['IS_AMBIGUOUS'] = 1
 
