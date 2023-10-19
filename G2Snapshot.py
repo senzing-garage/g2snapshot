@@ -290,6 +290,9 @@ def process_resume(statPack, resume_rows, csvFileHandle):
         matchCategory = resumeData[relatedID]['matchCategory']
         if matchCategory not in relSummary:
             relSummary[matchCategory] = {}
+            statPack[categoryTotalStat[matchCategory]+'_ENTITIES'] += 1
+        if int(relatedID) > entityID: # only count relationship once
+            statPack[categoryTotalStat[matchCategory]+'_RELATIONSHIPS'] += 1
         for dataSource in resumeData[relatedID]['dataSources']:
             if dataSource not in relSummary[matchCategory]:
                 relSummary[matchCategory][dataSource] = [relatedID]
@@ -321,8 +324,6 @@ def process_resume(statPack, resume_rows, csvFileHandle):
                 relationshipSample = ' '.join(str(x) for x in [entityID] + sorted(relSummary[matchCategory][dataSource2], key=lambda x: int(x)))
                 # if matchCategory == 'AMBIGUOUS_MATCH' and not isAmbiguousEntity:  # abandoned hack!
                 #    continue
-                statPack[categoryTotalStat[matchCategory]+'_ENTITIES'] += 1
-                statPack[categoryTotalStat[matchCategory]+'_RELATIONSHIPS'] += relationshipCount
                 if dataSource2 == dataSource1: # same data source relation
                     statPack = updateStatpack(statPack, dataSource1, None, matchCategory, 1, recordCount, relationshipCount, relationshipSample, randomIndex)
                 else:
@@ -1045,6 +1046,8 @@ if __name__ == '__main__':
         sys.exit(1)
     if not statsFileExisted:
         os.remove(statsFilePath)
+    else:
+        print('here')
 
     # see if there is database access
     try: 
