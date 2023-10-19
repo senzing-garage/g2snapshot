@@ -783,6 +783,8 @@ def processEntitiesAPIOnly():
         return 1
 
     statPack = initializeStatPack()
+    if os.path.exists(csvFilePath):
+        os.remove(csvFilePath)
     csvFileHandle = openCSVFile(exportCsv, csvFilePath)
 
     entityCount = 0
@@ -1046,8 +1048,6 @@ if __name__ == '__main__':
         sys.exit(1)
     if not statsFileExisted:
         os.remove(statsFilePath)
-    else:
-        print('here')
 
     # see if there is database access
     try: 
