@@ -35,6 +35,7 @@ disable=
     unused-argument,
     unused-import,
     unused-variable,
+    used-before-assignment,
     useless-return,
 good-names=
     template-python
