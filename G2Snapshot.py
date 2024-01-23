@@ -279,8 +279,18 @@ def process_resume(statPack, resume_rows, csvFileHandle):
             writeCsvRecord(rowData, csvFileHandle)
 
     # update entity size breakdown
-    statUpdate = {'TEMP_ESB_STATS': {str(entitySize): {'COUNT': 1, 'SAMPLE': [{'ENTITY_SIZE': entitySize, 'ENTITY_ID': entityID}]}}}
-    updateStatpack2(statPack, statUpdate, sampleSize, randomIndex)
+    #statUpdate = {'TEMP_ESB_STATS': {str(entitySize): {'COUNT': 1, 'SAMPLE': [{'ENTITY_SIZE': entitySize, 'ENTITY_ID': entityID}]}}}
+    #updateStatpack2(statPack, statUpdate, sampleSize, randomIndex)
+    str_entitySize = str(entitySize)
+    if str_entitySize not in statPack['TEMP_ESB_STATS']:
+        statPack['TEMP_ESB_STATS'][str_entitySize] = {}
+        statPack['TEMP_ESB_STATS'][str_entitySize]['COUNT'] = 0
+        statPack['TEMP_ESB_STATS'][str_entitySize]['SAMPLE'] = []
+    statPack['TEMP_ESB_STATS'][str_entitySize]['COUNT'] += 1
+    if len(statPack['TEMP_ESB_STATS'][str_entitySize]['SAMPLE']) < sampleSize:
+        statPack['TEMP_ESB_STATS'][str_entitySize]['SAMPLE'].append({'ENTITY_SIZE': entitySize, 'ENTITY_ID': entityID})
+    elif entityID % 10 == 0 and randomIndex != 0:
+        statPack['TEMP_ESB_STATS'][str_entitySize]['SAMPLE'][randomIndex] = {'ENTITY_SIZE': entitySize, 'ENTITY_ID': entityID}
 
     # update multi-source report
     if len(resumeData['0']['dataSources'].keys()) > 1:
@@ -325,6 +335,14 @@ def process_resume(statPack, resume_rows, csvFileHandle):
         # cross matches
         for dataSource2 in resumeData['0']['dataSources']:
             if dataSource2 == dataSource1:
+                continue
+            if len(resumeData['0']['dataSources'][dataSource2]['principles']) == 1:
+                principle_matchkey = resumeData['0']['dataSources'][dataSource2]['principles'][0] 
+            elif len(resumeData['0']['dataSources'][dataSource2]['principles']) > 1:
+                principle_matchkey = 'multiple||multiple'
+            elif len(resumeData['0']['dataSources'][dataSource1]['principles']) == 1: # maybe the matchkey is on data source1
+                principle_matchkey = resumeData['0']['dataSources'][dataSource1]['principles'][0] 
+            else:
                 continue
             statPack = updateStatpack(statPack, dataSource1, dataSource2, 'MATCH', 1, recordCount, 0, entityID, randomIndex, principle_matchkey=principle_matchkey)
 
@@ -374,6 +392,7 @@ def initializeStatPack():
     statPack['TOTAL_DISCLOSED_RELATION_ENTITIES'] = 0
     statPack['TOTAL_DISCLOSED_RELATION_RELATIONSHIPS'] = 0
     statPack['DATA_SOURCES'] = {}
+    statPack['TEMP_ESB_STATS'] = {}
     return statPack
 
 # -------------------------------------
@@ -449,6 +468,7 @@ def updateStatpack2(d, u, lmax, rsi):
                 d[k].extend(v)
             elif rsi != 0:
                 d[k][rsi] = v
+            break
         elif isinstance(v, int):
             if not d.get(k):
                 d[k] = 0
@@ -1077,9 +1097,11 @@ if __name__ == '__main__':
     if not outputFileRoot:
         print('\nPlease use -o to select and output path and root file name such as /project/audit/snap1\n')
         sys.exit(1)
-    if os.path.splitext(outputFileRoot)[1]:
-        print("\nPlease don't use a file extension as both a .json and a .csv file will be created\n")
-        sys.exit(1)
+    if os.path.splitext(outputFileRoot)[1] == '.json':
+        outputFileRoot = os.path.splitext(outputFileRoot)[0]
+    #else:
+    #    print("\nPlease don't use a file extension as both a .json and a .csv file will be created\n")
+    #    sys.exit(1)
 
     statsFilePath = outputFileRoot + '.json'
     csvFilePath = outputFileRoot + '.csv'
