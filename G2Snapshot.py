@@ -11,6 +11,7 @@ import time
 import math
 from datetime import datetime, timedelta
 import textwrap
+from contextlib import suppress
 
 import json
 try:
@@ -27,14 +28,17 @@ import concurrent.futures
 import itertools
 
 try:
-    import G2Paths
-    from G2IniParams import G2IniParams
     from senzing import G2ConfigMgr, G2Diagnostic, G2Engine, G2EngineFlags, G2Exception, G2Product
-    from G2Database import G2Database
 except Exception as err:
     print(f"\n{err}\n")
     sys.exit(1)
 
+with suppress(Exception): 
+    import G2Paths
+    from G2IniParams import G2IniParams
+
+with suppress(Exception): 
+    from G2Database import G2Database
 
 # -----------------------------------
 def queue_read(queue):
@@ -181,34 +185,35 @@ def complete_resume_db(rowData):
 
     if rowData['RELATED_ENTITY_ID'] == 0:
         rowData['MATCH_LEVEL'] = 1 if rowData['ERRULE_CODE'] else 0
-        rowData['MATCH_CATEOGRY'] = 'MATCH'
     elif rowData['IS_DISCLOSED'] != 0:
         rowData['MATCH_LEVEL'] = 11
-        rowData['MATCH_CATEGORY'] = 'DISCLOSED_RELATION'
-    elif rowData['IS_AMBIGUOUS'] != 0:
-        rowData['MATCH_LEVEL'] = 11
-        rowData['MATCH_CATEGORY'] = 'AMBIGUOUS_MATCH'
     else:
         try:
             rowData['MATCH_LEVEL'] = erruleLookup[rowData['ERRULE_ID']]['RTYPE_ID']
         except:
             rowData['MATCH_LEVEL'] = 3
-        if rowData['MATCH_LEVEL'] == 2:
-            rowData['MATCH_CATEGORY'] = 'POSSIBLE_MATCH'
-        else:
-            rowData['MATCH_CATEGORY'] = 'POSSIBLY_RELATED'
     return rowData
 
 
 # -------------------------------------
 def complete_resume_api(rowData):
 
+
+#{'RESOLVED_ENTITY_ID': 1, 'RELATED_ENTITY_ID': 0, 'MATCH_LEVEL': 1, 'MATCH_KEY': '+NAME+DOB+EMAIL', 'IS_DISCLOSED': 0, 'IS_AMBIGUOUS': 0, 'DATA_SOURCE': 'CUSTOMERS', 'RECORD_ID': '1003', 'ERRULE_CODE': 'SF1_PNAME_CSTAB'}
+#{'RESOLVED_ENTITY_ID': 1, 'RELATED_ENTITY_ID': 5, 'MATCH_LEVEL': 2, 'MATCH_KEY': '+NAME+ADDRESS-DOB', 'IS_DISCLOSED': 0, 'IS_AMBIGUOUS': 0, 'DATA_SOURCE': 'CUSTOMERS', 'RECORD_ID': '1005', 'ERRULE_CODE': 'CNAME_CFF_DEXCL'}
+
     rowData['RESOLVED_ENTITY_ID'] = int(rowData['RESOLVED_ENTITY_ID'])
     rowData['RELATED_ENTITY_ID'] = int(rowData['RELATED_ENTITY_ID'])
     rowData['IS_DISCLOSED'] = int(rowData['IS_DISCLOSED'])
     rowData['IS_AMBIGUOUS'] = int(rowData['IS_AMBIGUOUS'])
     rowData['MATCH_LEVEL'] = int(rowData['MATCH_LEVEL'])
+    if rowData['IS_DISCLOSED'] != 0:
+        rowData['MATCH_LEVEL'] = 11
 
+    try:
+        rowData['ERRULE_ID'] = erruleLookup2[rowData['ERRULE_CODE']]['ERRULE_ID']
+    except:
+        rowData['ERRULE_ID'] = 0
     return rowData
 
 # -------------------------------------
@@ -1077,8 +1082,10 @@ if __name__ == '__main__':
             dsrcLookupByCode[cfgRecord['DSRC_CODE']] = cfgRecord
 
         erruleLookup = {}
+        erruleLookup2 = {}
         for cfgRecord in cfgData['G2_CONFIG']['CFG_ERRULE']:
             erruleLookup[cfgRecord['ERRULE_ID']] = cfgRecord
+            erruleLookup2[cfgRecord['ERRULE_CODE']] = cfgRecord
 
         ambiguousFtypeID = 0
         esbFtypeLookup = {}
