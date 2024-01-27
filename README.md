@@ -1,5 +1,17 @@
 # g2snapshot
 
+If you are beginning your journey with
+[Senzing](https://senzing.com/),
+please start with
+[Senzing Quick Start guides](https://docs.senzing.com/quickstart/).
+
+You are in the
+[Senzing Garage](https://github.com/senzing-garage)
+where projects are "tinkered" on.
+Although this GitHub repository may help you understand an approach to using Senzing,
+it's not considered to be "production ready" and is not considered to be part of the Senzing product.
+Heck, it may not even be appropriate for your application of Senzing!
+
 ## Overview
 
 The following snapshot utilities analyze the data in a Senzing repository to calculate the following reports:
@@ -8,10 +20,10 @@ The following snapshot utilities analyze the data in a Senzing repository to cal
 - **entitySizeBreakdown** - calculates how many entities have how many records, highlighting possible instances of overmatching.
 
 These reports are placed in a json file that can be viewed with the G2Explorer located 
-here: https://github.com/Senzing/g2explorer
+here: https://github.com/senzing-garage/g2explorer
 
 It can optionally export the entire entity resolution result set for use in the G2Audit utility located 
-here: https://github.com/Senzing/g2audit
+here: https://github.com/senzing-garage/g2audit
 
 Taking a snapshot is part of Senzing's Exploratory Data Analysis toolset which you can read more about here: https://senzing.zendesk.com/hc/en-us/sections/360009388534-Exploratory-Data-Analysis-EDA-
 
