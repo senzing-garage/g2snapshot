@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.4] - 2024-02-05
+
+### Added in 2.2.4
+
+*note: version jumped to allign with G2Explorer accompanying G2Explorer release*
+
+- data and crossSourceSummary drill downs now compute stats by matchKey
+- new principlesUsed report that computes stats by matchKey globally
+- new multiSource report that computes stats for entities with multiple sources
+
 ## [2.1.4] - 2023-04-06
 
 ### Added in 2.1.4
