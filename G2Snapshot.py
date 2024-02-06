@@ -470,10 +470,9 @@ def updateStatpack2(d, u, lmax, rsi):
             if not d.get(k):
                 d[k] = []
             if len(d[k]) < lmax:
-                d[k].extend(v)
+                d[k].append(v[0])
             elif rsi != 0:
-                d[k][rsi] = v
-            break
+                d[k][rsi] = v[0]
         elif isinstance(v, int):
             if not d.get(k):
                 d[k] = 0
