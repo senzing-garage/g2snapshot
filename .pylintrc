@@ -18,6 +18,7 @@ disable=
     missing-module-docstring,
     no-else-break,
     no-member,
+    possibly-used-before-assignment,
     protected-access,
     redefined-outer-name,
     superfluous-parens,
