@@ -348,7 +348,8 @@ def process_resume(statPack, resume_rows, csvFileHandle):
             elif len(resumeData['0']['dataSources'][dataSource1]['principles']) == 1: # maybe the matchkey is on data source1
                 principle_matchkey = resumeData['0']['dataSources'][dataSource1]['principles'][0] 
             else:
-                continue
+                principle_matchkey = None
+                #continue
             statPack = updateStatpack(statPack, dataSource1, dataSource2, 'MATCH', 1, recordCount, 0, entityID, randomIndex, principle_matchkey=principle_matchkey)
 
         # related entity stats
