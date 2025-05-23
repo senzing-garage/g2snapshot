@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added in 2.2.4
 
-*note: version jumped to allign with G2Explorer accompanying G2Explorer release*
+_note: version jumped to align with G2Explorer accompanying G2Explorer release_
 
 - data and crossSourceSummary drill downs now compute stats by matchKey
 - new principlesUsed report that computes stats by matchKey globally
@@ -39,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added in 2.1.2
 
-- Timing issue fix where process queue could be falsly empty
+- Timing issue fix where process queue could be falsely empty
 
 ## [2.1.1] - 2022-08-11
 
